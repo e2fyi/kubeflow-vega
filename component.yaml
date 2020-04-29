@@ -1,0 +1,139 @@
+name: kubeflow-vega
+description: Kubeflow visualization component backed by Vega and Vega-Lite
+metadata:
+  annotations:
+    kfx.e2.fyi: kubeflow-vega
+
+inputs:
+  - {
+      name: data,
+      type: String,
+      description: "artifact with the data to visualize (e.g. output file from another kfp op)",
+    }
+  - {
+      name: data_type,
+      type: String,
+      description: 'format of the data file: must be one of "json", "csv", "tsv" or "topojson"',
+    }
+  - {
+      name: json_key,
+      type: String,
+      default: "",
+      optional: true,
+      description: key to extract the data when the data input is a JSON object. The value of the key must be an array of objects.,
+    }
+  - {
+      name: x,
+      type: String,
+      default: "",
+      optional: true,
+      description: data column (or key) to use to plot the x-axis,
+    }
+  - {
+      name: xtype,
+      type: String,
+      default: quantitative,
+      description: 'data type for the x-axis: must be one of "quantitative", "temporal", "ordinal", or "nominal"',
+    }
+  - {
+      name: xagg,
+      type: String,
+      default: "",
+      optional: true,
+      description: 'how the data in the x-axis will be aggregated: "count", "mean", "median", "min", "max", or "sum"',
+    }
+  - {
+      name: y,
+      type: String,
+      default: "",
+      optional: true,
+      description: data column (or key) to use to plot the y-axis,
+    }
+  - {
+      name: ytype,
+      type: String,
+      default: quantitative,
+      description: 'data type for the y-axis: must be one of "quantitative", "temporal", "ordinal", or "nominal"',
+    }
+  - {
+      name: yagg,
+      type: String,
+      default: "",
+      optional: true,
+      description: 'how the data in the y-axis will be aggregated: "count", "mean", "median", "min", "max", or "sum"',
+    }
+  - {
+      name: spec,
+      type: String,
+      default: "",
+      optional: true,
+      description: artifact with a Vega or Vega-Lite spec to render.,
+    }
+  - {
+      name: mark,
+      type: String,
+      default: "point",
+      optional: true,
+      description: 'visual encoding to use to render the data: must be one of "area", "bar", "circle", "line", "point", "rect", "rule", "square", "text", "tick", or "geoshape"',
+    }
+  - {
+      name: height,
+      type: String,
+      default: container,
+      optional: true,
+      description: Height of the visualization - defaults to container height,
+    }
+  - {
+      name: width,
+      type: String,
+      default: container,
+      optional: true,
+      description: Width of the visualization - defaults to container width,
+    }
+  - { name: interactive, type: Bool, default: true, optional: true }
+
+outputs:
+  - {
+      name: mlpipeline_ui_metadata,
+      type: JsonObject,
+      description: ui metadata artifact for rendering in kfp ui,
+    }
+
+implementation:
+  container:
+    image: e2fyi/kubeflow-vega:latest
+    command:
+      [
+        node,
+        /home/kf/dist/index.js,
+        --dpath,
+        { inputPath: data },
+        --dtype,
+        { inputValue: data_type },
+        --dkey,
+        { inputValue: json_key },
+        --x,
+        { inputValue: x },
+        --xtype,
+        { inputValue: xtype },
+        --xagg,
+        { inputValue: xagg },
+        --y,
+        { inputValue: y },
+        --ytype,
+        { inputValue: ytype },
+        --yagg,
+        { inputValue: yagg },
+        --mark,
+        { inputValue: mark },
+        --width,
+        { inputValue: width },
+        --height,
+        { inputValue: height },
+        --interactive,
+        { inputValue: interactive },
+        --spec,
+        { inputPath: spec },
+        --ui-metadata-path,
+        { outputPath: mlpipeline_ui_metadata },
+      ]
